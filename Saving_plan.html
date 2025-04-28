@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Family Saving Plan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-image: url('https://cdn.pixabay.com/photo/2017/09/04/16/58/passport-2714675_960_720.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: center;
+    }
+    .bg-blur {
+      backdrop-filter: blur(8px);
+      background: #d8e6eb;
+background: linear-gradient(90deg, rgba(216, 230, 235, 1) 0%, rgba(223, 242, 233, 1) 50%, rgba(224, 224, 224, 1) 100%);
+    }
+    .btn {
+      @apply bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded;
+    }
+  </style>
+</head>
+<body class="text-gray-800 font-sans">
+
+<!-- Login Page -->
+<div id="loginPage" class="h-screen flex items-center justify-center">
+  <div class="bg-blur p-6 rounded shadow w-96">
+    <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+    <input type="text" placeholder="Username" class="w-full p-2 border mb-3 rounded" />
+    <input type="password" placeholder="Password" class="w-full p-2 border mb-4 rounded" />
+    <button onclick="loginSuccess()" class="bg-zinc-200 w-full rounded-xl">Login</button>
+  </div>
+</div>
+
+<!-- Main Page -->
+<div id="mainPage" class="hidden p-6 space-y-8">
+  <div class="bg-blur p-6 rounded shadow space-y-6">
+    <h1 class="text-3xl font-bold text-center">Family Saving Plan</h1>
+
+    <!-- Currency Selector -->
+    <div class="text-center">
+      <label class="font-semibold mr-2">Currency:</label>
+      <select id="currency" onchange="updateCurrency()" class="border p-2 rounded">
+        <option value="EUR">EUR (€)</option>
+        <option value="USD">USD ($)</option>
+        <option value="GBP">GBP (£)</option>
+        <option value="JPY">JPY (¥)</option>
+        <option value="INR">INR (₹)</option>
+        <option value="AUD">AUD (A$)</option>
+        <option
+        value="NZD">NZD (NZ$)</option>
+      </select>
+    </div>
+
+    <!-- Live Currency Converter -->
+    <div class="text-center">
+      <h2 class="text-xl font-semibold mb-2">Live Currency Converter</h2>
+      <input id="fromAmount" type="number" placeholder="Amount" class="border p-2 rounded mr-2 w-32" />
+      <select id="fromCurrency" class="border p-2 rounded mr-2">
+        <option value="EUR">EUR</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="JPY">JPY</option><option value="INR">INR</option><option value="AUD">AUD</option><option value="NZD">NZD</option>
+      </select>
+      to
+      <select id="toCurrency" class="border p-2 rounded mx-2">
+        <option value="EUR">EUR</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="JPY">JPY</option><option value="INR">INR</option><option value="AUD">AUD</option><option value="NZD">NZD</option>
+      </select>
+      <button onclick="convertCurrency()" class="btn">Convert</button>
+      <div id="conversionResult" class="mt-2 font-bold"></div>
+    </div>
+
+    <!-- Expense Table -->
+    <div>
+      <h2 class="text-xl font-semibold mb-2">Expenses</h2>
+      <table class="w-full bg-white shadow rounded mb-4 text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="p-2">Category</th>
+            <th class="p-2">Amount (<span id="currencySymbol">€</span>)</th>
+            <th class="p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="expensesTable">
+          <tr>
+            <td class="p-2">Rent</td>
+            <td class="p-2" data-eur="1000">1000</td>
+            <td class="p-2"><button onclick="editExpense(this)">Edit</button> <button onclick="deleteExpense(this)">Delete</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <input id="newCategory" type="text" placeholder="Category" class="border p-2 rounded mr-2" />
+      <input id="newAmount" type="number" placeholder="Amount" class="border p-2 rounded mr-2" />
+      <button onclick="addExpense()" class="btn">Add Expense</button>
+    </div>
+
+    <!-- Savings Chart -->
+    <div>
+      <h2 class="text-xl font-semibold mb-2">Savings Calculator</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded shadow">
+          <label>Income</label>
+          <input id="income" type="number" class="w-full p-2 border rounded mb-2" />
+          <label>Expenses</label>
+          <input id="expenses" type="number" class="w-full p-2 border rounded mb-4" />
+          <button onclick="calculateSavings()" class="btn w-full">Calculate</button>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+          <canvas id="savingsChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Basic Calculator -->
+    <div class="text-center">
+      <h2 class="text-xl font-semibold mb-2">Calculator</h2>
+      <input type="text" id="calcInput" class="bg-purple-100  w-full rounded-xl border rounded text-right mb-2" disabled />
+      <div class="grid grid-cols-4 gap-2">
+        <button class="btn" onclick="appendCalc('7')">7</button>
+        <button class="btn" onclick="appendCalc('8')">8</button>
+        <button class="btn" onclick="appendCalc('9')">9</button>
+        <button class="btn" onclick="appendCalc('/')">/</button>
+        <button class="btn" onclick="appendCalc('4')">4</button>
+        <button class="btn" onclick="appendCalc('5')">5</button>
+        <button class="btn" onclick="appendCalc('6')">6</button>
+        <button class="btn" onclick="appendCalc('*')">*</button>
+        <button class="btn" onclick="appendCalc('1')">1</button>
+        <button class="btn" onclick="appendCalc('2')">2</button>
+        <button class="btn" onclick="appendCalc('3')">3</button>
+        <button class="btn" onclick="appendCalc('-')">-</button>
+        <button class="btn" onclick="appendCalc('0')">0</button>
+        <button class="btn" onclick="appendCalc('.')">.</button>
+        <button class="btn" onclick="calculateResult()">=</button>
+        <button class="btn" onclick="appendCalc('+')">+</button>
+      </div>
+      <button onclick="clearCalc()" class="bg-lime-200 w-10 h-10 rounded-xl">clear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currencySymbol = '€';
+  const currencySymbols = { EUR: '€', USD: '$', GBP: '£', JPY: '¥', INR: '₹', AUD: 'A$', NZD: 'NZ$' };
+  let conversionRates = {};
+
+  async function fetchExchangeRates() {
+    try {
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/EUR');
+      const data = await res.json();
+      conversionRates = data.rates;
+      updateCurrency();
+    } catch {
+      console.warn("Failed to fetch exchange rates.");
+    }
+  }
+
+  function loginSuccess() {
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('mainPage').classList.remove('hidden');
+    fetchExchangeRates();
+  }
+
+  function updateCurrency() {
+    const selected = document.getElementById('currency').value;
+    currencySymbol = currencySymbols[selected];
+    document.getElementById('currencySymbol').innerText = currencySymbol;
+    document.querySelectorAll('#expensesTable tr').forEach(row => {
+      const cell = row.cells[1];
+      const eurVal = parseFloat(cell.getAttribute('data-eur'));
+      if (conversionRates[selected]) {
+        cell.innerText = (eurVal * conversionRates[selected]).toFixed(2);
+      }
+    });
+  }
+
+  function addExpense() {
+    const cat = document.getElementById('newCategory').value;
+    const amt = document.getElementById('newAmount').value;
+    if (cat && amt) {
+      const selected = document.getElementById('currency').value;
+      const row = document.createElement('tr');
+      row.innerHTML = `<td class="p-2">${cat}</td>
+        <td class="p-2" data-eur="${amt}">${(amt * conversionRates[selected]).toFixed(2)}</td>
+        <td class="p-2"><button onclick="editExpense(this)">Edit</button> <button onclick="deleteExpense(this)">Delete</button></td>`;
+      document.getElementById('expensesTable').appendChild(row);
+      document.getElementById('newCategory').value = '';
+      document.getElementById('newAmount').value = '';
+    }
+  }
+
+  function editExpense(btn) {
+    const row = btn.parentNode.parentNode;
+    const newCat = prompt('Edit Category:', row.cells[0].innerText);
+    const newAmt = prompt('Edit Amount (EUR):', row.cells[1].getAttribute('data-eur'));
+    if (newCat && newAmt) {
+      row.cells[0].innerText = newCat;
+      row.cells[1].setAttribute('data-eur', newAmt);
+      const selected = document.getElementById('currency').value;
+      row.cells[1].innerText = (newAmt * conversionRates[selected]).toFixed(2);
+    }
+  }
+
+  function deleteExpense(btn) {
+    btn.parentNode.parentNode.remove();
+  }
+
+  function calculateSavings() {
+    const income = parseFloat(document.getElementById('income').value);
+    const expenses = parseFloat(document.getElementById('expenses').value);
+    const savings = income - expenses;
+    const ctx = document.getElementById('savingsChart').getContext('2d');
+    if (window.savingsChart) window.savingsChart.destroy();
+    window.savingsChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Income', 'Expenses', 'Savings'],
+        datasets: [{
+          label: `Amount (${currencySymbol})`,
+          data: [income, expenses, savings],
+          backgroundColor: ['#10B981']
+        }]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+  }
+
+  function convertCurrency() {
+    const from = document.getElementById('fromCurrency').value;
+    const to = document.getElementById('toCurrency').value;
+    const amount = parseFloat(document.getElementById('fromAmount').value);
+    if (from && to && amount && conversionRates[from] && conversionRates[to]) {
+      const result = amount / conversionRates[from] * conversionRates[to];
+      document.getElementById('conversionResult').innerText = `${amount} ${from} = ${result.toFixed(2)} ${to}`;
+    }
+  }
+
+  let calcExp = '';
+  function appendCalc(val) {
+    calcExp += val;
+    document.getElementById('calcInput').value = calcExp;
+  }
+  function clearCalc() {
+    calcExp = '';
+    document.getElementById('calcInput').value = '';
+  }
+  function calculateResult() {
+    try {
+      document.getElementById('calcInput').value = eval(calcExp);
+      calcExp = '';
+    } catch {
+      document.getElementById('calcInput').value = 'Error';
+      calcExp = '';
+    }
+  }
+</script>
+
+</body>
+</html>
